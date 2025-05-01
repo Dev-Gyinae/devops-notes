@@ -1,0 +1,41 @@
+# Nexus 3 Docker Deployment
+
+# 1. Create Docker volume (recommended for persistence)
+docker volume create nexus-data
+
+# 2. Run Nexus container with:
+#    - 2 CPU cores limit
+#    - 2GB memory limit
+#    - Persistent volume
+#    - Ports 8081 (UI) and 8083 (Docker registry)
+docker run -d \
+  --name nexus \
+  -p 8081:8081 \
+  -p 8083:8083 \
+  -v nexus-data:/nexus-data \
+  --cpus=2 \
+  --memory=2g \
+  --restart unless-stopped \
+  sonatype/nexus3
+
+# 3. First-time setup
+# Get admin password:
+docker exec nexus cat /nexus-data/admin.password
+
+# 4. Verify container status
+docker ps -f name=nexus
+
+# 5. Check resource usage
+docker stats nexus
+
+# 6. View logs
+docker logs -f nexus
+
+# Access URLs:
+# - Web UI: http://localhost:8081
+# - Docker registry: http://localhost:8083
+
+# Additional management commands:
+# Stop container: docker stop nexus
+# Start container: docker start nexus
+# Backup volume: docker run --rm -v nexus-data:/volume -v $(pwd):/backup alpine tar cvf /backup/nexus-backup.tar /volume
