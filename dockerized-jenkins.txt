@@ -1,1 +1,3 @@
-Jenkins installation --> reference guide 
+Jenkins installation on docker--> reference guide 
+install dependencies 
+install plugins
