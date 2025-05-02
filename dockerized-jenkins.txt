@@ -1,3 +1,4 @@
 Jenkins installation on docker--> reference guide 
 install dependencies 
-install plugins
+install plugins via ui/ within container.
+
