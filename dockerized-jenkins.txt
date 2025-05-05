@@ -1,4 +1,41 @@
-Jenkins installation on docker--> reference guide 
-install dependencies 
-install plugins via ui/ within container.
+Prerequisites
 
+Docker installed on your system
+Basic understanding of Docker concepts
+
+Step 1: Pull Jenkins Docker Image
+Pull the official Jenkins LTS (Long-Term Support) image from Docker Hub:
+docker pull jenkins/jenkins:lts
+
+Step 2: Create Jenkins Data Volume
+Create a volume to persist Jenkins data:
+docker volume create jenkins_data
+
+Step 3: Run Jenkins Container
+Run the Jenkins container with the following command:
+
+docker run -d \
+  --name jenkins \
+  -p 8080:8080 \ # this is the container port mapping to the server port
+  -p 50000:50000 \ #this is the node port
+  -v jenkins_data:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(which docker):/usr/bin/docker \
+  --restart unless-stopped \
+  jenkins/jenkins:lts
+
+Step 4: Access Jenkins
+Wait for the container to start (check logs with docker logs jenkins)
+Open your browser and go to: http://localhost:8080
+
+Retrieve the initial admin password:
+docker exec -it jenkins /bin/bash   (if you want to be root  docker exec -it -u 0 jenkins /bin/bash)
+cat /var/jenkins_home/secrets/initialAdminPassword
+Paste the password in the Jenkins setup page
+
+Step 5: Complete Setup
+Install suggested plugins
+
+Create your first admin user
+
+Start using Jenkins
