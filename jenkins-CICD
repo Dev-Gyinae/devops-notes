@@ -16,8 +16,11 @@ docker run -d \
 
 2. Install Docker Inside the Container
 Once Jenkins is running:
-  docker exec -it -u root jenkins /bin/bash
-  apt update && apt install -y docker.io
+      docker exec -it -u root jenkins /bin/bash
+      apt update && apt install -y docker.io
+
+Restrict Jenkins permissions with:
+      chmod 666 /var/run/docker.sock  # Least privilege (better: use Docker groups)
 
 Inside the Jenkins container:
-docker ps  # Should list containers from the host
+      docker ps  # Should list containers from the host
