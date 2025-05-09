@@ -24,3 +24,9 @@ Restrict Jenkins permissions with:
 
 Inside the Jenkins container:
       docker ps  # Should list containers from the host
+
+
+
+
+Auto builds can be triggered with Gitlab CI -> Jenkins 
+Multi branch pipelines can be triggered with webhooks.
