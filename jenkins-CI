@@ -28,5 +28,6 @@ Inside the Jenkins container:
 
 
 
-Auto builds can be triggered with Gitlab CI -> Jenkins 
+Auto builds can be triggered with Gitlab CI -> Jenkins.
 Multi branch pipelines can be triggered with webhooks.
+target server ports needs to be opened to ip of jenkins as well
