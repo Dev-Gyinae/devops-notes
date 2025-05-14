@@ -2,3 +2,4 @@ Kubernetes notes x components
 minikube
 kubectl 
 ingress
+services
