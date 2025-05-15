@@ -3,4 +3,4 @@ minikube
 kubectl 
 ingress
 services
-statefulsets
+statefulsets vs deployments
