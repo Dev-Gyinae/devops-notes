@@ -3,3 +3,4 @@ minikube
 kubectl 
 ingress
 services
+statefulsets
