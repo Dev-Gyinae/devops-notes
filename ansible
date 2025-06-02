@@ -1,16 +1,16 @@
-Introduction
+## Introduction
 Ansible is a powerful automation tool that simplifies configuration management, application deployment, and task automation. In this guide, we will:
 
-Install Ansible on a primary server (Control Node).
+##  Ansible on a primary server (Control Node).
 Configure SSH access to a secondary server (Managed Node).
 Test connectivity using Ansible.
 
-Prerequisites
+## Prerequisites
 Control Node: A Linux server (Ubuntu/Debian/CentOS) where Ansible will be installed.
 Managed Node: A secondary Linux server that Ansible will manage.
 SSH Access: The control node must have SSH access to the managed node.
 
-Step 1: Install Ansible on the Control Node
+## Step 1: Install Ansible on the Control Node
 #Ubuntu/Debian
 sudo apt update
 sudo apt install -y ansible 
@@ -21,7 +21,8 @@ sudo yum install -y ansible
 
 #Verify Installation:
 ansible --version
-Step 2: Configure SSH Key Authentication
+
+## Step 2: Configure SSH Key Authentication
 Ansible requires passwordless SSH access to the managed node.
 
 Generate an SSH Key on Control Node
@@ -35,7 +36,8 @@ ssh-copy-id -i ~/.ssh/ansible_key.pub user@managed_node_ip
 Test SSH Access
 
 ssh -i ~/.ssh/ansible_key user@managed_node_ip
-Step 3: Set Up Ansible Inventory
+
+## Step 3: Set Up Ansible Inventory
 Ansible uses an inventory file to define managed hosts.
 
 Create an inventory File
@@ -50,7 +52,7 @@ ansible_user: The SSH user on the managed node.
 
 ansible_ssh_private_key_file: Path to the private key.
 
-Step 4: Test Ansible Connectivity
+## Step 4: Test Ansible Connectivity
 Ping the Managed Node:
 
 ansible -i ~/ansible/inventory/hosts all -m ping
@@ -61,14 +63,7 @@ managed_node_ip | SUCCESS => {
     "ping": "pong"
 }
 
-Step 5: Run an Ad-Hoc Command (Optional)
+## Step 5: Run an Ad-Hoc Command (Optional)
 Execute a command on the managed node:
 
 ansible -i ~/ansible/inventory/hosts all -m command -a "uptime"
-Conclusion
-You have successfully:
-
-Installed Ansible on the control node.
-Configured SSH key-based authentication.
-Set up an inventory file.
-Tested connectivity to the managed node.
