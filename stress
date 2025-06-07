@@ -8,7 +8,7 @@ In this post, we’ll cover what `stress` is, why you should use it, and how to 
 
 ## What Is `stress`?
 
-`stress` is a lightweight command-line utility for generating CPU, memory, I/O, and disk load on Linux systems. It's not intended for long-term monitoring or performance benchmarking—instead, it's designed to deliberately push your system beyond its comfort zone and reveal how it behaves under duress.
+`stress` is a lightweight command-line utility for generating CPU, memory, I/O, and disk load on Linux systems. It's not intended for long-term monitoring or performance benchmarking. Instead, it’s designed to push your system beyond its comfort zone and reveal how it behaves under duress.
 
 ## Why Use `stress`?
 
@@ -16,54 +16,47 @@ In this post, we’ll cover what `stress` is, why you should use it, and how to 
   Simulate high CPU usage to trigger AWS Auto Scaling policies. Need to check if your EC2 instances scale up under load? Use `stress` to create the conditions.
 
 - **Evaluate Instance Performance**  
-  Comparing a t3.micro to a t3.medium? `stress` helps you benchmark their limits in a reproducible way.
+  Comparing a `t3.micro` to a `t3.medium`? `stress` helps benchmark their limits in a reproducible way.
 
 - **Identify Bottlenecks**  
   Expose weaknesses in CPU, memory, or disk performance. This tool assists in diagnosing underperforming applications or server configurations.
 
 - **Chaos Engineering and Fault Tolerance**  
-  Inject controlled chaos into your infrastructure and observe how it responds. This is a vital step toward building resilient, self-healing systems.
+  Inject controlled chaos into your infrastructure and observe how it responds—a vital step toward building resilient, self-healing systems.
 
 ## Installing `stress`
 
 Installation is straightforward, depending on your Linux distribution:
 
-**Ubuntu/Debian:**
-```bash
-sudo apt update
-sudo apt install stress
-```
+### Ubuntu/Debian:
+sudo apt update && sudo apt install stress
 
-**CentOS/RHEL:**
-```bash
-sudo yum install epel-release -y
-sudo yum install stress -y
-```
+
+### CentOS/RHEL:
+sudo yum install epel-release -y && sudo yum install stress -y
+
 
 ## How to Use `stress`
 
 Here are some practical examples:
 
-**Simulate CPU Load**
-```bash
+### Simulate CPU Load
 stress --cpu 4 --timeout 60
-```
-This command starts 4 workers, each fully occupying a CPU core for 60 seconds.
 
-**Simulate Memory Load**
-```bash
+Starts 4 workers, each fully occupying a CPU core for 60 seconds.
+
+### Simulate Memory Load
 stress --vm 2 --vm-bytes 512M --timeout 60
-```
-This runs 2 memory workers, each consuming 512MB of RAM, for 60 seconds.
 
-**Simulate Disk I/O**
-```bash
+Runs 2 memory workers, each consuming 512MB of RAM, for 60 seconds.
+
+### Simulate Disk I/O
 stress --io 2 --timeout 60
-```
-This spawns 2 I/O workers to place sustained load on your disk subsystem.
+
+Spawns 2 I/O workers to place sustained load on your disk subsystem.
 
 ## Important Safety Notes
 
-- Never run `stress` on production systems unless you’re conducting carefully planned testing.
+- **Never** run `stress` on production systems unless you’re conducting carefully planned testing.
 - Monitor your system’s behavior using tools like `top`, `htop`, or AWS CloudWatch during the test.
 - Always set a `--timeout` to avoid runaway load tests.
