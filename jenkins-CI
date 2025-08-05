@@ -1,4 +1,4 @@
-nstalling Docker Inside a Jenkins Container & Enabling Docker Socket Access
+Installing Docker Inside a Jenkins Container & Enabling Docker Socket Access
 To allow a Jenkins container to run Docker commands (e.g., docker build, docker push) during CI/CD pipelines, you need to:
   1. Install Docker inside the Jenkins container (Docker-in-Docker).
   2. Mount the host’s Docker socket (/var/run/docker.sock) for permissions.
