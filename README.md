@@ -1,2 +1,1 @@
-k3s
-i am making this for streak
+A repo for challenges and notes
