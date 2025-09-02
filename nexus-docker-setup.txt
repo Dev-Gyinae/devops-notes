@@ -1,4 +1,4 @@
-# Nexus 3 Docker Deployment
+# Nexus 3 Docker Deployment (Private Hosted Repository)
 
 # 1. Create Docker volume (recommended for persistence)
 docker volume create nexus-data
