@@ -1,2 +1,3 @@
 k3s was used to replace k8s for my projects --> Almost the same but k3s has a lighter weight and specs demand
 it has the same kubectl commands like k8s
+Kubectl cmd line
