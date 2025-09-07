@@ -4,6 +4,7 @@
 
 abishek 
 anton putra 
-nana
+nana- tech world 
+devops shack
 
 it covers mostly devops and its gazillion tools 
