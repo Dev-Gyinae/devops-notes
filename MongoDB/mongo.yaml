@@ -1,0 +1,34 @@
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+      - mongo-network
+    volumes:
+      - mongo-data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8082:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      ME_CONFIG_BASICAUTH_ENABLED: "true"  # Changed to string
+      ME_CONFIG_BASICAUTH_USERNAME: mongoexpressuser
+      ME_CONFIG_BASICAUTH_PASSWORD: mongoexpresspass
+    networks:
+      - mongo-network
+    depends_on:
+      - mongo
+
+networks:
+  mongo-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
