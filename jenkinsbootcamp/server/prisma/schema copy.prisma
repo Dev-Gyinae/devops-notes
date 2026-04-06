@@ -1,0 +1,290 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String?
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  playlists Playlist[]
+  campaigns Campaign[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+// ============================================
+// PAIRING SYSTEM
+// ============================================
+
+model PairingCode {
+  id        String            @id @default(cuid())
+  code      String            @unique
+  status    PairingCodeStatus @default(PENDING)
+  expiresAt DateTime          @map("expires_at")
+  screenId  String?           @unique @map("screen_id")
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  screen Screen? @relation(fields: [screenId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+  @@index([expiresAt])
+  @@map("pairing_codes")
+}
+
+enum PairingCodeStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+}
+
+// ============================================
+// SCREENS
+// ============================================
+
+model Screen {
+  id         String       @id @default(cuid())
+  name       String?
+  status     ScreenStatus @default(OFFLINE)
+  playlistId String?      @map("playlist_id")
+  resolution String?      @default("1920x1080")
+  pairedAt   DateTime?    @map("paired_at")
+  lastSeenAt DateTime?    @map("last_seen_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  // Device information (optional)
+  deviceInfo Json? @map("device_info")
+
+  // Relations
+  playlist     Playlist?     @relation(fields: [playlistId], references: [id], onDelete: SetNull)
+  pairingCode  PairingCode?
+  playbackLogs PlaybackLog[]
+
+  @@index([status])
+  @@index([playlistId])
+  @@map("screens")
+}
+
+enum ScreenStatus {
+  ONLINE
+  OFFLINE
+  ERROR
+}
+
+// ============================================
+// PLAYLISTS & CONTENT
+// ============================================
+
+model Playlist {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdBy   String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  creator      User?          @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  items        PlaylistItem[]
+  screens      Screen[]
+  campaigns    Campaign[]
+  playbackLogs PlaybackLog[]
+
+  @@index([isActive])
+  @@map("playlists")
+}
+
+model PlaylistItem {
+  id         String           @id @default(cuid())
+  playlistId String           @map("playlist_id")
+  type       PlaylistItemType
+  url        String
+  duration   Int // Duration in seconds
+  order      Int              @default(0)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  playlist     Playlist      @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  playbackLogs PlaybackLog[]
+
+  @@index([playlistId])
+  @@index([order])
+  @@map("playlist_items")
+}
+
+enum PlaylistItemType {
+  IMAGE
+  VIDEO
+  HTML
+}
+
+// ============================================
+// CAMPAIGNS
+// ============================================
+
+model Campaign {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  startDate   DateTime       @map("start_date")
+  endDate     DateTime       @map("end_date")
+  status      CampaignStatus @default(SCHEDULED)
+  playlistId  String?        @map("playlist_id")
+  createdBy   String?        @map("created_by")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  creator  User?     @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  playlist Playlist? @relation(fields: [playlistId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("campaigns")
+}
+
+enum CampaignStatus {
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// PLAYBACK TRACKING & ANALYTICS
+// ============================================
+
+model PlaybackLog {
+  id             String        @id @default(cuid())
+  screenId       String        @map("screen_id")
+  playlistId     String?       @map("playlist_id")
+  playlistItemId String?       @map("playlist_item_id")
+  eventType      PlaybackEvent
+  timestamp      DateTime      @default(now())
+  metadata       Json?
+
+  // Relations
+  screen       Screen        @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  playlist     Playlist?     @relation(fields: [playlistId], references: [id], onDelete: SetNull)
+  playlistItem PlaylistItem? @relation(fields: [playlistItemId], references: [id], onDelete: SetNull)
+
+  @@index([screenId])
+  @@index([playlistId])
+  @@index([timestamp])
+  @@index([eventType])
+  @@map("playback_logs")
+}
+
+enum PlaybackEvent {
+  START
+  COMPLETE
+  ERROR
+  SKIP
+}
+
+model Screen {
+  id          String    @id @default(cuid())
+  name        String
+  status      String    @default("OFFLINE")
+  playlistId  String?
+  playlist    Playlist? @relation(fields: [playlistId], references: [id])
+  lastSeenAt  DateTime?
+  deviceInfo  Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // NEW: Screen location tagging (Bug #12)
+  venueName   String?
+  venueType   String?
+  cluster     String?   // RETAIL | ENTERTAINMENT | CORPORATE | PUBLIC
+  area        String?
+  address     String?
+
+  playbackLogs PlaybackLog[]
+}
+
+model Playlist {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  items       PlaylistItem[]
+  screens     Screen[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // NEW: Playback mode (Bug #9)
+  playbackMode  String  @default("CYCLE")  // CYCLE | FIXED | MAX
+  totalDuration Int?    // in seconds, for FIXED/MAX modes
+
+  // NEW: Aspect ratio (Bug #11)
+  aspectRatio   String  @default("16:9")   // 16:9 | 9:16 | 4:3 | 1:1
+
+  playbackLogs PlaybackLog[]
+}
+
+model PlaylistItem {
+  id          String   @id @default(cuid())
+  playlistId  String
+  playlist    Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  type        MediaType
+  url         String
+  duration    Int      @default(10)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model PlaybackLog {
+  id             String   @id @default(cuid())
+  screenId       String
+  screen         Screen   @relation(fields: [screenId], references: [id], onDelete: Cascade)
+  playlistId     String?
+  playlist       Playlist? @relation(fields: [playlistId], references: [id])
+  playlistItemId String?
+  eventType      String
+  timestamp      DateTime @default(now())
+}
+
+model PairingCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  status    String   @default("PENDING")
+  screenId  String?
+  screen    Screen?  @relation(fields: [screenId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  HTML
+}

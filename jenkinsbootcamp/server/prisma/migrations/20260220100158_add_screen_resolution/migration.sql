@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "screens" ADD COLUMN IF NOT EXISTS "resolution" TEXT DEFAULT '1920x1080';

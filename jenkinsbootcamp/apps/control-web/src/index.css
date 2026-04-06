@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent: #7c8fff;
+  --accent-2: #a78bfa;
+  --accent-grad: linear-gradient(135deg, #7c8fff 0%, #a78bfa 100%);
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --bg: #0d0f14;
+  --surface: #13161f;
+  --surface-2: #1a1e2b;
+  --surface-3: #222638;
+  --border: #242838;
+  --border-2: #2e3347;
+  --text: #e2e4ed;
+  --text-2: #8b91b0;
+  --text-3: #4a5070;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+
+input, textarea, select {
+  font-family: 'Inter', sans-serif;
+}
+
+button {
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}

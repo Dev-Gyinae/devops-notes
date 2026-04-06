@@ -1,0 +1,30 @@
+{
+  "name": "adhive-dooh",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AdHive DOOH Platform - Digital Out-Of-Home Advertising System",
+  "workspaces": [
+    "apps/*",
+    "server"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=server",
+    "dev:control": "npm run dev --workspace=control-web",
+    "dev:display": "npm run dev --workspace=display-web",
+    "dev:all": "concurrently \"npm run dev:server\" \"npm run dev:control\" \"npm run dev:display\"",
+    "build:server": "npm run build --workspace=server",
+    "build:control": "npm run build --workspace=control-web",
+    "build:display": "npm run build --workspace=display-web",
+    "build:all": "npm run build:server && npm run build:control && npm run build:display",
+    "prisma:migrate": "npm run prisma:migrate --workspace=server",
+    "prisma:generate": "npm run prisma:generate --workspace=server",
+    "prisma:studio": "npm run prisma:studio --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
