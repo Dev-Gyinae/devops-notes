@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+
+    environment {
+        // Application
+        APP_NAME = "adhive-api"
+        VERSION = "1.0.${env.BUILD_NUMBER}"
+
+        // Docker Hub
+        DOCKERHUB_REGISTRY = "https://docker.io"
+        DOCKERHUB_REPO = "gyinae/demo-app"
+        DOCKERHUB_CREDS_ID = "dockerhub-creds"
+
+        // Nexus Docker Registry
+        NEXUS_REGISTRY = "192.168.122.166:8083"
+        NEXUS_CREDS_ID = "Nexus-Repo-Bootcamp"
+    }
+
+    stages {
+
+        stage('Checkout Source') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo "🚧 Building ${APP_NAME}:${VERSION}"
+
+                    // Build image using Dockerfile inside /server
+                    IMAGE = docker.build(
+                        "${APP_NAME}:${VERSION}",
+                        "./server"
+                    )
+
+                    // Create latest tag locally
+                    sh "docker tag ${APP_NAME}:${VERSION} ${APP_NAME}:latest"
+                }
+            }
+        }
+
+        stage('Push Images (Parallel)') {
+            parallel {
+
+                stage('Push → Docker Hub') {
+                    steps {
+                        script {
+                            docker.withRegistry(DOCKERHUB_REGISTRY, DOCKERHUB_CREDS_ID) {
+
+                                IMAGE.tag("${DOCKERHUB_REPO}:${VERSION}")
+                                IMAGE.tag("${DOCKERHUB_REPO}:latest")
+
+                                docker.image("${DOCKERHUB_REPO}:${VERSION}").push()
+                                docker.image("${DOCKERHUB_REPO}:latest").push()
+                            }
+                        }
+                    }
+                }
+
+                stage('Push → Nexus') {
+                    steps {
+                        script {
+                            docker.withRegistry("http://${NEXUS_REGISTRY}", NEXUS_CREDS_ID) {
+
+                                IMAGE.tag("${NEXUS_REGISTRY}/${APP_NAME}:${VERSION}")
+                                IMAGE.tag("${NEXUS_REGISTRY}/${APP_NAME}:latest")
+
+                                docker.image("${NEXUS_REGISTRY}/${APP_NAME}:${VERSION}").push()
+                                docker.image("${NEXUS_REGISTRY}/${APP_NAME}:latest").push()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo """
+========================================
+✅ SUCCESS — Image Published
+
+DockerHub:
+docker.io/${DOCKERHUB_REPO}:${VERSION}
+
+Nexus:
+http://${NEXUS_REGISTRY}/${APP_NAME}:${VERSION}
+========================================
+"""
+        }
+
+        failure {
+            echo "❌ Pipeline failed. Check logs."
+        }
+    }
+}
