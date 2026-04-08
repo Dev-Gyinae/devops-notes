@@ -1,18 +1,22 @@
 pipeline {
     agent any
 
-    environment {
-        // Application
-        APP_NAME = "adhive-api"
-        VERSION = "1.0.${env.BUILD_NUMBER}"
+    parameters {
+        booleanParam(name: 'FORCE_BUILD', defaultValue: false,
+            description: 'Force build even if image already exists')
+    }
 
-        // Docker Hub
-        DOCKERHUB_REGISTRY = "https://docker.io"
+    environment {
+        APP_NAME = "adhive-api"
+
+        // ✅ Correct Docker Hub registry
+        DOCKERHUB_REGISTRY = "https://index.docker.io/v1/"
         DOCKERHUB_REPO = "gyinae/demo-app"
         DOCKERHUB_CREDS_ID = "dockerhub-creds"
 
-        // Nexus Docker Registry
+        // Nexus
         NEXUS_REGISTRY = "192.168.122.166:8083"
+        NEXUS_REPO = "docker-hosted"
         NEXUS_CREDS_ID = "Nexus-Repo-Bootcamp"
     }
 
@@ -24,55 +28,113 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Resolve Version (Git SHA)') {
             steps {
                 script {
-                    echo "🚧 Building ${APP_NAME}:${VERSION}"
+                    env.GIT_SHA = sh(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
 
-                    // Build image using Dockerfile inside /server
-                    IMAGE = docker.build(
-                        "${APP_NAME}:${VERSION}",
-                        "./server"
-                    )
+                    env.IMAGE_TAG = "${APP_NAME}:${GIT_SHA}"
 
-                    // Create latest tag locally
-                    sh "docker tag ${APP_NAME}:${VERSION} ${APP_NAME}:latest"
+                    env.DOCKERHUB_TAG =
+                        "${DOCKERHUB_REPO}:${APP_NAME}-${GIT_SHA}"
+
+                    env.NEXUS_TAG =
+                        "${NEXUS_REGISTRY}/${NEXUS_REPO}/${APP_NAME}:${GIT_SHA}"
+
+                    echo "Version (commit): ${GIT_SHA}"
                 }
             }
         }
 
-        stage('Push Images (Parallel)') {
-            parallel {
+        stage('Check If Image Exists') {
+            steps {
+                script {
+                    def exists = false
 
-                stage('Push → Docker Hub') {
-                    steps {
-                        script {
-                            docker.withRegistry(DOCKERHUB_REGISTRY, DOCKERHUB_CREDS_ID) {
+                    try {
+                        sh "docker manifest inspect ${NEXUS_TAG}"
+                        exists = true
+                        echo "✅ Image already exists in Nexus"
+                    } catch (e) {
+                        echo "🚧 Image not found — build required"
+                    }
 
-                                IMAGE.tag("${DOCKERHUB_REPO}:${VERSION}")
-                                IMAGE.tag("${DOCKERHUB_REPO}:latest")
+                    env.SKIP_BUILD =
+                        (exists && !params.FORCE_BUILD).toString()
 
-                                docker.image("${DOCKERHUB_REPO}:${VERSION}").push()
-                                docker.image("${DOCKERHUB_REPO}:latest").push()
-                            }
-                        }
+                    echo "Skip build: ${env.SKIP_BUILD}"
+                }
+            }
+        }
+
+        stage('Build Image') {
+            when {
+                expression { env.SKIP_BUILD != 'true' }
+            }
+            steps {
+                script {
+                    echo "🚧 Building image ${IMAGE_TAG}"
+
+                    docker.build(IMAGE_TAG, "./server")
+
+                    sh "docker tag ${IMAGE_TAG} ${APP_NAME}:latest"
+                }
+            }
+        }
+
+        stage('Push → Docker Hub') {
+            when {
+                expression { env.SKIP_BUILD != 'true' }
+            }
+            steps {
+                script {
+                    docker.withRegistry(
+                        DOCKERHUB_REGISTRY,
+                        DOCKERHUB_CREDS_ID
+                    ) {
+                        sh """
+                        docker tag ${IMAGE_TAG} ${DOCKERHUB_TAG}
+                        docker push ${DOCKERHUB_TAG}
+
+                        docker tag ${APP_NAME}:latest ${DOCKERHUB_REPO}:${APP_NAME}-latest
+                        docker push ${DOCKERHUB_REPO}:${APP_NAME}-latest
+                        """
                     }
                 }
+            }
+        }
 
-                stage('Push → Nexus') {
-                    steps {
-                        script {
-                            docker.withRegistry("http://${NEXUS_REGISTRY}", NEXUS_CREDS_ID) {
+        stage('Push → Nexus') {
+            when {
+                expression { env.SKIP_BUILD != 'true' }
+            }
+            steps {
+                script {
+                    docker.withRegistry(
+                        "http://${NEXUS_REGISTRY}",
+                        NEXUS_CREDS_ID
+                    ) {
+                        sh """
+                        docker tag ${IMAGE_TAG} ${NEXUS_TAG}
+                        docker push ${NEXUS_TAG}
 
-                                IMAGE.tag("${NEXUS_REGISTRY}/${APP_NAME}:${VERSION}")
-                                IMAGE.tag("${NEXUS_REGISTRY}/${APP_NAME}:latest")
-
-                                docker.image("${NEXUS_REGISTRY}/${APP_NAME}:${VERSION}").push()
-                                docker.image("${NEXUS_REGISTRY}/${APP_NAME}:latest").push()
-                            }
-                        }
+                        docker tag ${APP_NAME}:latest ${NEXUS_REGISTRY}/${NEXUS_REPO}/${APP_NAME}:latest
+                        docker push ${NEXUS_REGISTRY}/${NEXUS_REPO}/${APP_NAME}:latest
+                        """
                     }
                 }
+            }
+        }
+
+        stage('Skip Message') {
+            when {
+                expression { env.SKIP_BUILD == 'true' }
+            }
+            steps {
+                echo "⏭️ Image already exists for commit ${GIT_SHA}"
             }
         }
     }
@@ -80,20 +142,23 @@ pipeline {
     post {
         success {
             echo """
-========================================
-✅ SUCCESS — Image Published
+================================
+✅ PIPELINE SUCCESS
+
+Commit: ${GIT_SHA}
+Image: ${APP_NAME}
 
 DockerHub:
-docker.io/${DOCKERHUB_REPO}:${VERSION}
+${DOCKERHUB_REPO}:${APP_NAME}-${GIT_SHA}
 
 Nexus:
-http://${NEXUS_REGISTRY}/${APP_NAME}:${VERSION}
-========================================
+${NEXUS_TAG}
+================================
 """
         }
 
         failure {
-            echo "❌ Pipeline failed. Check logs."
+            echo "❌ Pipeline failed."
         }
     }
 }
