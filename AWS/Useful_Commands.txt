@@ -1,0 +1,100 @@
+=========================================
+IDENTITY & SECURITY (IAM)
+=========================================
+
+# Who am I? - Shows current user/role
+aws sts get-caller-identity
+
+# List all IAM users
+aws iam list-users
+
+# List your permissions
+aws iam list-attached-user-policies --user-name bootcamp
+
+# List your groups
+aws iam list-groups-for-user --user-name bootcamp
+
+# List policies attached to your group
+aws iam list-attached-group-policies --group-name admin
+
+# Create a read-only user for daily use (safer!)
+aws iam create-user --user-name dev-readonly
+aws iam attach-user-policy --user-name dev-readonly --policy-arn arn:aws:iam::aws:policy/ReadOnlyAccess
+
+=========================================
+BILLING & COST MANAGEMENT
+=========================================
+
+# Get current month's cost (so far)
+aws ce get-cost-and-usage --time-period Start=$(date +%Y-%m-01),End=$(date +%Y-%m-%d) --granularity MONTHLY --metrics "UnblendedCost"
+
+# Get yesterday's cost
+aws ce get-cost-and-usage --time-period Start=$(date -d "yesterday" +%Y-%m-%d),End=$(date +%Y-%m-%d) --granularity DAILY --metrics "UnblendedCost"
+
+# Check if you have any active EC2 instances (potential costs!)
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType]' --output table
+
+# Check for Elastic IPs (charged if not attached to running instance)
+aws ec2 describe-addresses
+
+=========================================
+S3 STORAGE (5GB Always Free)
+=========================================
+
+# List all S3 buckets
+aws s3 ls
+
+# List contents of a specific bucket
+aws s3 ls s3://your-bucket-name/
+
+# Check bucket size (total storage used)
+aws s3api list-objects-v2 --bucket your-bucket-name --query 'sum(Contents[?StorageClass!='\''GLACIER'\''].Size)' --output text
+
+# Create a new bucket (5GB free)
+aws s3 mb s3://my-unique-bucket-name-$(date +%s)
+
+# Upload a file
+aws s3 cp myfile.txt s3://my-bucket-name/
+
+# Sync a directory (like rsync for S3)
+aws s3 sync ./local-folder/ s3://my-bucket-name/remote-folder/
+
+# Delete a bucket (be careful!)
+aws s3 rb s3://bucket-name --force
+
+=========================================
+DANGER ZONE - Commands that cost money or delete data
+=========================================
+
+# These will COST MONEY:
+aws ec2 run-instances --image-id ami-12345678 --instance-type t2.micro
+aws rds create-db-instance --db-instance-identifier mydb --db-instance-class db.t3.micro
+
+# These can DELETE DATA (irreversible!):
+aws s3 rb s3://my-bucket --force
+aws dynamodb delete-table --table-name important-data
+aws ec2 terminate-instances --instance-ids i-1234567890abcdef0
+aws iam delete-user --user-name important-user
+
+=========================================
+USEFUL ALIASES (Add to ~/.bashrc or ~/.zshrc)
+=========================================
+
+alias aws-cost='aws ce get-cost-and-usage --time-period Start=$(date +%Y-%m-01),End=$(date +%Y-%m-%d) --granularity MONTHLY --metrics "UnblendedCost"'
+alias aws-instances='aws ec2 describe-instances --query "Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType]" --output table'
+alias aws-buckets='aws s3 ls'
+alias aws-me='aws sts get-caller-identity'
+
+=========================================
+QUICK SAFETY CHECK (Run this daily)
+=========================================
+
+# Check today's cost so far
+aws ce get-cost-and-usage --time-period Start=$(date +%Y-%m-%d),End=$(date +%Y-%m-%d) --granularity DAILY --metrics "UnblendedCost"
+
+# List all running resources
+aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"
+aws s3 ls
+aws dynamodb list-tables
+
+=========================================
