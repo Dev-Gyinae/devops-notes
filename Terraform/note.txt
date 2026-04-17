@@ -1,0 +1,6 @@
+Providers are used to connect to technologies eg. AWS, Azure, GCP, jenkins
+[registry.terraform.io/providers]
+
+1. Terraform is very well documented so the docs are very detailed when provisioning
+2. Google and AI helps as well.
+
