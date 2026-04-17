@@ -2,4 +2,4 @@ terraform init  --> this initiates the app and downloads the provider
 
 Provider gives access of the whole API of the service connected to eg using AWS provider gives you full access to the AWS API and CLI executions.
 
-
+terraform apply --> Takes the descriptions in the main.tf and creates them.
