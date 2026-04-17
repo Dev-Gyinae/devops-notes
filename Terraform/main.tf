@@ -14,6 +14,7 @@ resource "aws_subnet" "name_of_subnet" {
 	vpc_id = aws_vpc.name_of_VPC.id
 	cidr_block = "eg. 10.0.10.0/24"
 	availability_zone = "eg. eu-west-3a"
+	vpc_env = "dev"
 }
 
 
@@ -27,6 +28,9 @@ resource "aws_subnet" "name_of_subnet_2" {
         vpc_id = data.aws_vpc.existing_vpc.id
         cidr_block = "eg. refer default id"
         availability_zone = "eg. eu-west-3a"
-}
+	tags = {
+		name: "eg. default"
+	}
 
+}
 
