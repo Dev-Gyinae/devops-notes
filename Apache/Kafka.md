@@ -1,0 +1,2 @@
+
+Apache Kafka is a distributed event streaming platform designed to handle high-throughput, fault-tolerant data streaming and message processing. It allows systems to produce, store, and consume streams of events in real-time, making it ideal for building data pipelines and event-driven architectures. Kafka is widely used for use cases like real-time analytics, log aggregation, and microservice communication.
