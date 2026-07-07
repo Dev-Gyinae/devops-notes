@@ -5,14 +5,14 @@ Apache Kafka is a distributed event streaming platform designed to handle high-t
 Core Differences
 ---
 1. Data Architecture
-   RabbitMQ: Uses a queue system. Once a message is read by a consumer, it is deleted from the queue.
-   Kafka: Uses a distributed append-only log. Messages are written to disk and kept even after being read, allowing them to be replayed.
+   - RabbitMQ: Uses a queue system. Once a message is read by a consumer, it is deleted from the queue.
+   - Kafka: Uses a distributed append-only log. Messages are written to disk and kept even after being read, allowing them to be replayed.
 2. Push vs. Pull
-   RabbitMQ (Push): The broker actively pushes messages to consumers. The broker manages the state of who received what.
-   Kafka (Pull): Consumers pull data from Kafka at their own pace. The consumer tracks its own position (offset) in the log.
+   - RabbitMQ (Push): The broker actively pushes messages to consumers. The broker manages the state of who received what.
+   - Kafka (Pull): Consumers pull data from Kafka at their own pace. The consumer tracks its own position (offset) in the log.
 3. Scaling and Performance
-   RabbitMQ: Excellent for complex routing rules, but performance slows down under heavy, multi-gigabyte data volumes.
-   Kafka: Built for massive horizontal scale. It easily handles millions of messages per second by splitting data across multiple servers.
+   - RabbitMQ: Excellent for complex routing rules, but performance slows down under heavy, multi-gigabyte data volumes.
+   - Kafka: Built for massive horizontal scale. It easily handles millions of messages per second by splitting data across multiple servers.
 
 When to Use Which 
 ---
